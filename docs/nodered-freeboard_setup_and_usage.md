@@ -41,8 +41,8 @@
 -   The working directory should be your Windows %HOMEPATH% e.g. C:\\Users\\ksc
 
     ```cmd
-    #> npm install grunt
-    #> npm install grunt-cli
+    # npm install grunt
+    # npm install grunt-cli
     ```
 
 -   This installs [grunt](https://gruntjs.com/) and and
@@ -58,7 +58,7 @@
 
 -   The working directory should be your Windows %HOMEPATH% e.g. C:\\Users\\ksc
     ```cmd
-    #npm install -g --unsafe-perm node-red
+    # npm install -g --unsafe-perm node-red
     ```
 
 -   This installs node-red under %HOMEPATH%\\node_modules and also adds the
@@ -76,7 +76,7 @@
 
 -   In the open Node.js command prompt run ...
     ```cmd
-    #> node-red
+    # node-red
     ```
 
 -   The output should look similar to the below screenshot
@@ -115,9 +115,9 @@
 -   Open the Node.js command prompt (WinStart \> Search "Node.js Command
     prompt")
     ```cmd
-    #> cd ~/.node-red (where ~ denotes your %HOMEPATH%)
-    #> git clone https://github.com/Freeboard/freeboard.git
-    #> npm install freeboard
+    # cd ~/.node-red (where ~ denotes your %HOMEPATH%)
+    # git clone https://github.com/Freeboard/freeboard.git
+    # npm install freeboard
     ```
 
 ### Install Node-RED/freeboard extension
@@ -135,9 +135,9 @@
     prompt")
 
     ```cmd
-    #> cd ~/.node-red (where ~ denotes your %HOMEPATH%)
-    #> npm install freeboard
-    #> npm install node-red-contrib-freeboard (will take some minutes)
+    # cd ~/.node-red (where ~ denotes your %HOMEPATH%)
+    # npm install freeboard
+    # npm install node-red-contrib-freeboard (will take some minutes)
     ```
 
 -   For the used Node.js LTS 14.6.7 and node-red-contrib-freeboard-0.0.7, which
