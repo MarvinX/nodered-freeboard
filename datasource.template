@@ -26,9 +26,8 @@ var myDatasourcePlugin = function(settings, updateCallback) {
     }
     self.updateNow = function() {
 		$.ajax({
-			url: "../freeboard_api/datasourceupdate",
-            type: "GET",
-            data: {direct:true}
+			url: "/freeboard_api/datasourceupdate",
+            type: "GET"
 		}).done(function(data) {
 			var pdata=JSON.parse(data);
 			if (typeof(pdata[dsid])!=="undefined"){

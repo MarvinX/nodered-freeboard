@@ -12,7 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Changes, (C) 2021 MarvinX
+ * - Fixes in RED.httpNode.get("/freeboard_api/datasourceupdate" ...) handler
+ *   to get rid of using obsolete express.js functions
+ * - Commented out the now unused postValue() handler after changes in polling
+ *   logic defined within 'datasource.jsheader'
+ * - Client-side polling for datasource updates is now always done using
+ *   the "direct" method with a frequency of 500msec. See also the slightly
+ *   adjuseted ux.freeboard.poll() implementation in 'datasource.jsheader' template. 
  **/
+
 var express=require("express");
 var mustache=require("mustache");
 var fs=require("fs");
@@ -26,7 +36,7 @@ module.exports = function(RED) {
 
 	var dstemplate;
 	var dslib;
-	var pendingresponses=new Array();
+	// var pendingresponses=new Array();
 	fs.readFile(__dirname+"/datasource.template", function (err, data) {
 		if (err) throw err;
 		dstemplate=data.toString();
@@ -44,7 +54,7 @@ module.exports = function(RED) {
         var that = this;
         this.on("input", function(msg) {
 			that.lastValue=msg.payload;
-			postValue(that.id,that.lastValue);
+			// postValue(that.id,that.lastValue);
         });
 		this.on("close",function() {
 			var index = nodes.indexOf(that);
@@ -54,24 +64,24 @@ module.exports = function(RED) {
 		});
     }
 
-	function postValue(id,value){
-		var resp=pendingresponses;
-		pendingresponses=new Array();
-		for (var i in resp){
-			var ret={};
-			ret[id]=value
-			resp[i].end(JSON.stringify(ret));
-		}
-	}
+	// function postValue(id,value){
+	// 	var resp=pendingresponses;
+	// 	pendingresponses=new Array();
+	// 	for (var i in resp){
+	// 		var ret={};
+	// 		ret[id]=value
+	// 		resp[i].end(JSON.stringify(ret));
+	// 	}
+	// }
 
-	function interval(){
-		var resp=pendingresponses;
-		pendingresponses=new Array();
-		for (var i in resp){
-			resp[i].end(JSON.stringify({}));
-		}
-	}
-	setInterval(interval,1000);
+	// function interval(){
+	// 	var resp=pendingresponses;
+	// 	pendingresponses=new Array();
+	// 	for (var i in resp){
+	// 		resp[i].end(JSON.stringify({}));
+	// 	}
+	// }
+	// setInterval(interval,1000);
 
 
 	RED.httpNode.use(bodyParser.urlencoded({
@@ -99,15 +109,15 @@ module.exports = function(RED) {
 	RED.httpNode.get("/freeboard_api/datasourceupdate",
 		function (req,res){
 			// if(req.param("direct",false)){
-			if(req.query.direct){
+			// if(req.query.direct){
 				var ret={};
 				for (var i in nodes){
 					ret[nodes[i].id]=nodes[i].lastValue;
 				}
 				res.end(JSON.stringify(ret));
-			} else {
-				pendingresponses.push(res);
-			}
+			// } else {
+			// 	pendingresponses.push(res);
+			// }
 		}
 	);
 	RED.httpNode.get("/freeboard_api/dashboard/:name",

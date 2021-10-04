@@ -7,21 +7,23 @@ ux.freeboard.removeDatasource=function(datasource){
 	delete(ux.freeboard.datasources[datasource.id]);
 }
 ux.freeboard.poll=function(){
-	$.ajax({
-		// url: "../freeboard_api/datasourceupdate"
-		url: "../freeboard_api/datasourceupdate?direct=true"
-	}).done(function(data) {
-		var pdata=JSON.parse(data);
-		for(var name in pdata)
-		{
-			if (pdata.hasOwnProperty(name))
+	setTimeout(function(){
+		$.ajax({
+			url: "../freeboard_api/datasourceupdate",
+			type: "GET"
+		}).done(function(data) {
+			var pdata=JSON.parse(data);
+			for(var name in pdata)
 			{
-				if (typeof(ux.freeboard.datasources[name])!=="undefined"){
-					ux.freeboard.datasources[name].update(pdata[name]);
+				if (pdata.hasOwnProperty(name))
+				{
+					if (typeof(ux.freeboard.datasources[name])!=="undefined"){
+						ux.freeboard.datasources[name].update(pdata[name]);
+					}
 				}
 			}
-		}
-		ux.freeboard.poll();
-	});
+			ux.freeboard.poll();
+		});
+	}, 500);
 }
 ux.freeboard.poll();
