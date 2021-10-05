@@ -280,11 +280,11 @@
 
 ## Debugging the node-red/freeboard addon code 
 
-### Using VSCode
+### Using VSCode (for server-side code)
 
 -   https://it.knightnet.org.uk/kb/nr-qa/vscode-debugger/
 
-### Using Chrome
+### Using Chrome (for client-side code)
 
 -   In Chrome browser open the node-red hosted freeboard dashboard you want to
     debug

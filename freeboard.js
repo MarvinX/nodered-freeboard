@@ -20,7 +20,9 @@
  *   logic defined within 'datasource.jsheader'
  * - Client-side polling for datasource updates is now always done using
  *   the "direct" method with a frequency of 500msec. See also the slightly
- *   adjuseted ux.freeboard.poll() implementation in 'datasource.jsheader' template. 
+ *   adjusted ux.freeboard.poll() implementation in 'datasource.jsheader' template.
+ * - Improvements RED.httpNode.get("/freeboard_api/datasourceupdate" ...) handler
+ *   to check the node's flow context for 'isValid' flag. 
  **/
 
 var express=require("express");
@@ -64,26 +66,6 @@ module.exports = function(RED) {
 		});
     }
 
-	// function postValue(id,value){
-	// 	var resp=pendingresponses;
-	// 	pendingresponses=new Array();
-	// 	for (var i in resp){
-	// 		var ret={};
-	// 		ret[id]=value
-	// 		resp[i].end(JSON.stringify(ret));
-	// 	}
-	// }
-
-	// function interval(){
-	// 	var resp=pendingresponses;
-	// 	pendingresponses=new Array();
-	// 	for (var i in resp){
-	// 		resp[i].end(JSON.stringify({}));
-	// 	}
-	// }
-	// setInterval(interval,1000);
-
-
 	RED.httpNode.use(bodyParser.urlencoded({
 		extended: true
 	}));
@@ -108,16 +90,14 @@ module.exports = function(RED) {
 	);
 	RED.httpNode.get("/freeboard_api/datasourceupdate",
 		function (req,res){
-			// if(req.param("direct",false)){
-			// if(req.query.direct){
-				var ret={};
-				for (var i in nodes){
-					ret[nodes[i].id]=nodes[i].lastValue;
+			var ret={};
+			for (var node of nodes) {
+				if (node.context().flow.get('isValid') === false) {
+					node.lastValue = null;
 				}
-				res.end(JSON.stringify(ret));
-			// } else {
-			// 	pendingresponses.push(res);
-			// }
+				ret[node.id] = node.lastValue;
+			}
+			res.end(JSON.stringify(ret));
 		}
 	);
 	RED.httpNode.get("/freeboard_api/dashboard/:name",
