@@ -22,7 +22,9 @@ Includes the custom Freeboard [RAG-widget](https://github.com/leon-van-dongen/fr
 
 ## Installation, setup and basic usage
 
-A step-by-step instruction for installing Node.js, Node-RED, Freeboard and the original/unpatched nodered/freeboard addon can be found in [docs/nodered-freeboard_setup_and_usage](docs/nodered-freeboard_setup_and_usage.md). When using this repo, then you can skip the manual patching steps described in section "Install Node-RED/freeboard extension" of the step-by-step instruction. 
+A step-by-step instruction for installing Node.js, Node-RED, Freeboard and the original/unpatched nodered/freeboard addon can be found in [docs/nodered-freeboard_setup_and_usage](docs/nodered-freeboard_setup_and_usage.md). 
+
+ℹ When using this repo, then you can skip the manual patching steps described in section "Install Node-RED/freeboard extension" of the step-by-step instruction. 
 
 ## Technical notes
 
