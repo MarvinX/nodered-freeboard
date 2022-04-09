@@ -1,58 +1,28 @@
 {
-  "_from": "node-red-contrib-freeboard",
-  "_id": "node-red-contrib-freeboard@0.0.7",
-  "_inBundle": false,
-  "_integrity": "sha1-GnvUztjrVTBjAuP/Sncega/QAwA=",
-  "_location": "/node-red-contrib-freeboard",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "node-red-contrib-freeboard",
-    "name": "node-red-contrib-freeboard",
-    "escapedName": "node-red-contrib-freeboard",
-    "rawSpec": "",
-    "saveSpec": null,
-    "fetchSpec": "latest"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/node-red-contrib-freeboard/-/node-red-contrib-freeboard-0.0.7.tgz",
-  "_shasum": "1a7bd4ced8eb55306302e3ff4a771e81afd00300",
-  "_spec": "node-red-contrib-freeboard",
-  "_where": "C:\\Users\\ksc\\.node-red",
-  "bugs": {
-    "url": "https://github.com/urbiworx/node-red-contrib-freeboard/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {
-    "body-parser": "1.12.0",
-    "express": "4.12.0",
-    "freeboard": "git://github.com/freeboard/freeboard.git#94306b7",
-    "mustache": "1.1.0"
-  },
-  "deprecated": false,
+  "name": "node-red-contrib-freeboard",
+  "version": "0.0.7",
   "description": "Freeboard Dashboard Node for Node-RED",
-  "homepage": "https://github.com/urbiworx/node-red-contrib-freeboard#readme",
+  "dependencies": {
+    "body-parser": "*",
+    "express": "*",
+    "freeboard": "github:Freeboard/freeboard",
+    "mustache": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MarvinX/nodered-freeboard.git"
+  },
   "keywords": [
     "node-red",
     "freeboard",
     "dashboard"
   ],
-  "name": "node-red-contrib-freeboard",
   "node-red": {
     "nodes": {
       "freeboard": "freeboard.js"
     }
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/urbiworx/node-red-contrib-freeboard.git"
-  },
   "scripts": {
     "postinstall": "node rewritefiles.js"
-  },
-  "version": "0.0.7"
+  }
 }

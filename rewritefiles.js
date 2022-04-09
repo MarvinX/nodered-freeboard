@@ -1,4 +1,7 @@
-var fs = require('fs')
+// var fs = require('fs');
+const path = require('path');
+const fs = require('fs');
+
 
 var head=
   'head.js("js/freeboard.js","js/freeboard.plugins.min.js", "../freeboard_api/datasources", "plugins/thirdparty/jquery.keyframes.min.js", "plugins/thirdparty/widget.ragIndicator.js",\n'+
@@ -21,12 +24,12 @@ var head=
   '	            });\n'+
   '	</script>';
 
-fs.readFile('node_modules/freeboard/index.html' , 'utf8', function (err,data) {
+fs.readFile(path.normalize('node_modules/freeboard/index.html'), 'utf8', function (err,data) {
   if (err) {
     return console.log(err);
   }
   var result = data.replace(/head.js[\s\S]*?<\/script>/g, head);
-  fs.writeFile('node_modules/freeboard/index.html', result, 'utf8', function (err) {
+  fs.writeFile(path.normalize('node_modules/freeboard/index.html'), result, 'utf8', function (err) {
      if (err) return console.log(err);
   });
 });
@@ -56,16 +59,20 @@ var saveDashboard=
 	'	});\n'+
 	'}\n';
 
-fs.readFile('node_modules/freeboard/js/freeboard.js' , 'utf8', function (err,data) {
+fs.readFile(path.normalize('node_modules/freeboard/js/freeboard.js'), 'utf8', function (err,data) {
   if (err) {
     return console.log(err);
   }
   var result = data.replace(/this\.saveDashboard =[\s\S]*?a\.click[\s\S]*?\}/g, saveDashboard);
-  fs.writeFile('node_modules/freeboard/js/freeboard.js', result, 'utf8', function (err) {
+  fs.writeFile(path.normalize('node_modules/freeboard/js/freeboard.js'), result, 'utf8', function (err) {
      if (err) return console.log(err);
   });
 });
 
 // Copy the plugins across
-fs.createReadStream('freeboard-widget-rag-files/jquery.keyframes.min.js').pipe(fs.createWriteStream('node_modules/freeboard/plugins/thirdparty/jquery.keyframes.min.js'));
-fs.createReadStream('freeboard-widget-rag-files/widget.ragIndicator.js').pipe(fs.createWriteStream('node_modules/freeboard/plugins/thirdparty/widget.ragIndicator.js'));
+fs.createReadStream(path.normalize('freeboard-widget-rag-files/jquery.keyframes.min.js')).pipe(
+  fs.createWriteStream(path.normalize('node_modules/freeboard/plugins/thirdparty/jquery.keyframes.min.js')));
+
+fs.createReadStream(path.normalize('freeboard-widget-rag-files/widget.ragIndicator.js')).pipe(
+  fs.createWriteStream(path.normalize('node_modules/freeboard/plugins/thirdparty/widget.ragIndicator.js')));
+  
