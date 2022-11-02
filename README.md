@@ -1,12 +1,16 @@
-# Freeboard dashboard integration for Node-RED
+# NodeRED/Freeboard extension
 
 ## Overview
 
-This is a patched version of [urbiworx/node-red-contrib-freeboard](https://github.com/urbiworx/node-red-contrib-freeboard) v0.0.7; see also the [NodeRED library link](https://flows.nodered.org/node/node-red-contrib-freeboard).
+This projects provides a patched version of [urbiworx/node-red-contrib-freeboard](https://github.com/urbiworx/node-red-contrib-freeboard) v0.0.7; see also the [NodeRED library link](https://flows.nodered.org/node/node-red-contrib-freeboard).
+
+The original extension [node-red-contrib-freeboard](https://flows.nodered.org/node/node-red-contrib-freeboard) extension adds a new type of datasource to [Freeboard](https://freeboard.io/) dashboards which allows to drive Freeboard dashboards using NodeRED flows.
+
+The original extension has a couple of flaws and bugs and had to be slightly patched to work as expected.
 
 ## Copyright
 
-(C) 2022, MarvinX, https://github.com/MarvinX.
+(C) 2022, MarvinX
 
 ## License
 
