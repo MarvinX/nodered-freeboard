@@ -1,41 +1,75 @@
-# Node-RED/Freeboard addon design notes
+# NodeRED/Freeboard internals
 
 ## Overview
 
-This document containes notes on the basic design and internals of the nodered-freeboard addon.<br>
-For a step-by-step instruction of how to setup and use the nodered-freeboard addon refer to 
-[nodered-freeboard_setup_and_usage](nodered-freeboard_setup_and_usage.md).
+This document provides notes on some internal design aspects of the [NodeRED/Freeboard](../README.md) extension.
 
-## General approach
+## Design approach
 
-### Server-side part
-- [Node-RED](https://nodered.org/) is used as offline editor for defining the dataflows to be visualized on a Freeboard dashboard using one or more nodered-freeboard nodes as output interface.
-- Furthermore, Node-RED is used at runtime as web-based dataservice for hosting deployed data flows from which nodered-freeboard datasources of one or more Freeboard dashboards (clients) can periodically request upates through a REST-based API.
-- The Node-RED dataservice is running on HTTP server port 1880 by default.
-- Deployed Node-RED flows containing one or more nodered-freeboard datasources can be accessed by Freeboard dashboard clients through a dedicated REST-API which is rooted at ``<nodered>/freeboard_api/``.
-- The server-side code for the ``<nodered>/freeboard_api/`` endpoints setup and handling client requests is defined in [freeboard.js](../freeboard.js) (which is part of the nodred-freeboard package) using the Node-RED [httpNode](https://nodered.org/docs/api/modules/v/0.20.0/node-red.html#.httpNode) interface.
-- The Node-RED ``httpNode`` interface exposes [express.js](https://expressjs.com/en/5x/api.html#express) based middleware services to Node-RED node for extending the Node-RED dataservice with additional endpoints. 
+[Node-RED](https://nodered.org/) in combination with a [self-hosted Freeboard](https://github.com/Freeboard/freeboard) dashboard is used as baseline for realizing an IOT dashboard. Both NodeRED and Freeboard are [Node.js](https://nodejs.org/en/) apps.
 
-### Client-side part
-- [Freeboard dashboard](https://freeboard.io/) is used for data flow visualization.
-- The self-hosted Freeboard dashboard app is open-source and available for download [here](https://github.com/Freeboard/freeboard).
-- For development and testing purposes the Freeboard dashboard will be hosted locally on the same machine as the Node-RED data service.
-- The code of the locally hosted Freeboard dashboard app is part of the nodered-freeboard package and installed [side-by-side](../node_modules/freeboard) with the server-side code under ``~/.node-red/node_modules/node-red-contrib-freeboard/node_modules/freeboard``.
-- The Freeboard dashboard app added to the Node-RED runtime using the ``httpNode`` interface. This is done when the nodered-freeboard addon is loaded into Node-RED; see [freeboard.js](../freeboard.js); cf. notes from previous section for further information on the Node-RED ``httpNode`` interface.
-- The running Freeboard dashboard service is hosted under ``<nodered>/freeboard``.   
+The [NodeRED/Freeboard](https://flows.nodered.org/node/node-red-contrib-freeboard) extension provides the glue logic for connecting NodeRED data flows to Freeboard dashboards. This is achieved by (a) extending the NodeRED app with a `Freeboard datasink` node, and (b) extending the Freeboard app with a new `NodeRED datasource` adapter.
 
-## Basic design
+The `Freeboard datasink` node is used to expose NodeRED flows as dataservice through the REST-based `<nodered>/freeboard_api/` endpoint.
 
-The nodered-freeboard addon provides two things:
-- The [Node-RED/Freeboard node](https://nodered.org/docs/creating-nodes/) for adding the custom Freeboard node to Node-RED.
-- The [Freeboard/Node-RED datasource template](https://github.com/Freeboard/plugins/blob/master/datasources/plugin_example.js) for using Node-RED flows in a dashboard instance.
+The `NodeRED datasource` adapter is used to add NodeRED flows provided via `<nodered>/freeboard_api/` endpoint as dashboard datasources, and consuming these flows in one or more dashboard widgets.
 
-The custom Node-RED/Freeboard node is integrated into Node.js and Node-RED framework using the following files. See also [Creating your first node](https://nodered.org/docs/creating-nodes/first-node) from Node-RED documentation.
-- [package.json](../package.json), defines the Node.js module ``freeboard`` and defines dependencies and packaging instructions for NPM.
-- [freeboard.js](../freeboard.js), defines the Node-RED integration functions (Node-RED wrapper) for the freeboard node; see below for details. 
-- [freeboard.html](../freeboard.html), provides the freeboard nodes's HTML file which registers the freeboard node in Node-RED editor and defines the configuration parameters for the node's Node-RED editor template and the node's help text displayed in Node-RED editor. 
+In this design approach, the NodeRED app constitutes the datasource part comprising one or more flows exposed through the `<nodered>/freeboard_api/` via `Freeboard sink` nodes. The Freeboard dashboard app constitutes the datasink part comprising one or more dashboard widgets consuming flows from `<nodered>/freeboard_api/` via `NodeRED datasource` adapter.
+
+### NodeRED app
+
+- NodeRED is an [express.js](https://expressjs.com/) based web application which can be either deployed and used as standlone web service or embedded as module into larger Node.js application
+- When using NodeRED as standalone web service it has to be started on the Node.js console via
+
+  `#> cd ~/.node-red && node-red`
+
+- After startup, NodeRED will be served by default on <http://localhost:1880>
+- NodeRED comprises a `runtime` (backend) component and an `editor` (fontend) component
+- The NodeRED editor is accessible in the browser through `<nodered>/index.html`
+- The NodeRED editor is used here for defining flows targeting a Freeboard dashboard via `Freeboard datasink` node provided by NodeRED/Freeboard extension
+
+- When `deploying` flows in NodeRED editor, these flows are saved to `~/.node-red/flows.json` and added to NodeRED runtime
+- Deployed flows, i.e. their flow nodes, can interact with NodeRED runtime through the [component APIs](https://nodered.org/docs/api/modules/v/1.3/node-red.html), using in particular the [RED.nodes](https://nodered.org/docs/api/modules/v/1.3/node-red.html#.nodes) and [RED.httpNode](https://nodered.org/docs/api/modules/v/1.3/node-red.html#.httpNode) interfaces
+
+### NodeRED/Freeboard extension
+
+- The NodeRED/Freeboard extension registers itself as custom NodeRED node named `freeboard` through the [package.json](../package.json)/node-red section; see also <https://nodered.org/docs/creating-nodes/first-node#package-json>
+- The [package.json](../package.json)/node-red section defines [freeboard.js](../freeboard.js), which is a [Node.js module](https://nodejs.org/api/modules.html#the-module-wrapper), as implementation for the custom `freeboard` node
+- When NodeRED is started, it loads registered nodes through the Node.js `module.exports` mechanism; see <https://www.tutorialsteacher.com/nodejs/nodejs-module-exports> for details  
+- In case of NodeRED/Freeboard extension and its implementation in `freeboard.js`, the `module.exports` object is realized as anonymous function "that gets called when the runtime loads the node on start-up"; see also the notes provided [here](https://nodered.org/docs/creating-nodes/first-node#lower-casejs)
+- At the end of the `freeboard.js/module.exeports` implementation one can find the `RED.nodes.registerType("freeboard",Freeboard);` API call
+  - The second parameter the of this call refers to `freeboard.js/Freeboard` node constructor, which is called for each `freeboard` node when a flow is deployed; see [here](https://nodered.org/docs/creating-nodes/node-js#node-constructor) for further information
+- Along with `freeboard.js` module the [freeboard.html](../freeboard.html) is provided which is used to register the custom `freeboard` node in NodeRED editor; see [here](https://nodered.org/docs/creating-nodes/node-html) for further information
+- In addition to that one can also see in `freeboard.js/module.exports` implementation that when the NodeRED/Freeboard extension is loaded into NodeRED it performs a `RED.httpNode.use("/freeboard",express.static(__dirname + '/node_modules/freeboard'));`
+  - This call actually load the [freeboard dashboard](../node_modules/freeboard/) module and exposes it as local web service which is hosted by NodeRED and which is accessible in the browser as `<nodered>/freeboard`
+- For the interaction between NodeRED runtime and the local freeboard dashboard, such as requesting available Freeboard datasources and polling for updates, the `freeboard.js/module.exports` implementation reagisters various REST services and associated handler functions under `<nodered>/freeboard_api/`
+  - The `<nodered>/freeboard_api/` REST services are then used from within the [freeboard dashboard](../node_modules/freeboard/index.html) client code; see the corresponding notes further down in the documents
+
+### Freeboard dashboard service
+
+- The self-hosted Freeboard app is used for dashboarding and dataflow visualization
+- The self-hosted Freeboard app is open-source and available [here](https://github.com/Freeboard/freeboard) for download
+- For development and testing purposes the Freeboard app will be hosted locally on the same machine as the NodeRED
+- The code of the self-hosted Freeboard app is provided as part of the [NodeRED/Freeboard](../README.md) extension package and contained in [../node_modules/freeboard](../node_modules/freeboard)
+- The self-hosted Freeboard app will be installed as NodeRED-local dependency under `~/.node-red/node_modules/node-red-contrib-freeboard/node_modules/freeboard`
+- The self-hosted Freeboard dashboard app added to NodeRED HTTP service using the ``httpNode`` interface. This is done once when the NodeRED/Freeboard extension is loaded into NodeRED; see also [freeboard.js](../freeboard.js) code
+- The running Freeboard dashboard service is hosted under ``<nodered>/freeboard``
+
+## Design details
+
+The NodeRED/Freeboard extension provides two parts:
+
+- A [Custom NodeRED node](https://nodered.org/docs/creating-nodes/) implementation
+- A [Custom Freeboard datasource](https://github.com/Freeboard/plugins/blob/master/datasources/plugin_example.js) template
+
+The custom NodeRED/Freeboard node is integrated into NodeRED using the following files
+
+- [package.json](../package.json), defines amongst other things the NodeRED node `freeboard` and its Node.js module `freeboard.js`
+- [freeboard.js](../freeboard.js), implements the NodeRED node registration, freeboard dashboard setup and NodeRED <> Freeboard interaction via REST handlers hosted at `<nodered>/freeboard_api/`
+- [freeboard.html](../freeboard.html), provides the freeboard nodes's HTML file which registers the freeboard node in Node-RED editor and defines the configuration parameters for the node's Node-RED editor template and the node's help text displayed in Node-RED editor.
 
 The NPM installer uses the information provided by [package.json](../package.json) for registering the nodered-freeboard node as follows:
+
 ```json
 "name": "node-red-contrib-freeboard",
 "node-red": {
@@ -44,7 +78,8 @@ The NPM installer uses the information provided by [package.json](../package.jso
     }
 }
 ```
-The ``node-red`` section in package.json registers the ``freeboard`` node as part of Node-RED and tells the Node-RED runtime to load the ``freeboard.js`` script which contains the freeboard node implementation. In fact, the above lines register the new node type ``freeboard`` and it's implementing Node.js module. When using the nodered-freeboard node in the Node-RED editor, then the registration happens through the following lines from [freeboard.html](../freeboard.html).
+
+The `node-red` section in package.json registers the `freeboard` node as part of NodeRED and tells the NodeRED runtime to load the `freeboard.js` script which contains the freeboard node implementation. In fact, the above lines register the new node type `freeboard` and it's implementing Node.js module. When using the nodered-freeboard node in the NodeRED editor, then the registration happens through the following lines from [freeboard.html](../freeboard.html).
 
 ```html
 <script type="text/javascript">
@@ -53,7 +88,8 @@ The ``node-red`` section in package.json registers the ``freeboard`` node as par
     // ...
 </script>
 ```
-By naming convention, entrypoint in ``freeboard.js`` is ``function Freeboard(params)`` which is called by Node-RED runtime when a new nodered-freeboard instance is created in the Node-RED editor. The ``params`` argument contains the node's configuration parameter from the Node-RED editor. For the nodered-freeboard node there is only a single config-param, which is the name of nodered-freeboard node instance as assigned by the user.
+
+By naming convention, the entrypoint in `freeboard.js` is `function Freeboard(config)` which is called by NodeRED runtime when a new `freeboard` node is added to a flow NodeRED editor. The `config` argument contains the node's configuration parameters set in NodeRED editor. For the `freeboard` node there is only a single configuration parameter, which is the assigned datasource *name*.
 
 ```js
 function Freeboard(n) {
@@ -63,51 +99,54 @@ function Freeboard(n) {
 }
 ```
 
-## ``freeboard.js`` implementation details
+## `freeboard.js` implementation details
 
-This script implements the required Node.js/Node-RED function for constructing new nodered-freeboard nodes and receiving/sending messages provided by Node-RED flows. Other things such as logging and timers for the cyclic polling of incoming flows and data refresh of outgoing flows are defined here as well. See [Creating you first node/JavaScript file](https://nodered.org/docs/creating-nodes/node-js) from Node-RED documentation.
+This module implements the required NodeRED node registration and the node constructor function. Furthermore, this module performs the setup of `<nodered>/freeboard` dashboard service and the registration of `<nodered>/freeboard_api` REST services; see also section "Design apporach / NodeRED/Freeboard extension"
 
 ### Node-RED node constructor
 
-- ``function Freeboard(n)``
-- Create a new nodered-freeboard instance with name ``n``
-- Register a listener/handler for ``input`` events of this node which receives the flow's msg.payload updates
-- Register some cleanup code as listener for the ``close`` event of this node
+- `function Freeboard(n)`
+- Called by NodeRED runtime for `freeboard` nodes when a flow is deployed
+- Creates a new `freeboard` node instance named *n.name*
+- Adds the new node to the list of Freeboard datasources here realized as *nodes* array)
+- Registers an `input` event handler of this node for handling msg.payload updates
+- Registers a `close` event handler which removes the `freeboard` node instance from the Freeboard datasources list
 
 ```js
     function Freeboard(n) {
         RED.nodes.createNode(this,n); // create a new freeboard node instance
         this.name = n.name.trim();    // set the name attribute for this instance
-		nodes.push(this);             // add new instance to internal 'nodes' list
+        nodes.push(this);             // add new instance to internal 'nodes' list
         var that = this;
-        this.on("input", function(msg) {  // register 'input' event listener/handler which updates
-			that.lastValue=msg.payload;   // the node with msg.payload data from the incoming flow 
+        this.on("input", function(msg) {  // register 'input' event handler which updates
+            that.lastValue=msg.payload;   // the node with msg.payload data from the incoming flow 
         });
-		this.on("close",function() {         // register cleanup code for 'close' event 
-			var index = nodes.indexOf(that); // which removes this node item from 'nodes' list 
-			if (index > -1) {
-				nodes.splice(index, 1);   
-			}
-		});
+        this.on("close",function() {         // register cleanup code for 'close' event 
+            var index = nodes.indexOf(that); // which removes this node item from 'nodes' list 
+            if (index > -1) {
+            nodes.splice(index, 1);   
+            }
+        });
     }
 ```
 
-### REST-API handler ``/freeboard_api/datasourceupdate`` 
+### REST-API handler `/freeboard_api/datasourceupdate`
 
-- The server-side REST handler for ``/freeboard_api/datasourceupdate`` requests is found in ``freeboard.js`` and is as follows.
+- Implemented in `freeboard.js`
+- Handles `/freeboard_api/datasourceupdate` requests from Freeboard dashboard clients
 
 ```js
-	RED.httpNode.get("/freeboard_api/datasourceupdate",
-		function (req,res){
-            var ret={};
-            for (var i in nodes){
-                ret[nodes[i].id]=nodes[i].lastValue;
-            }
-            res.end(JSON.stringify(ret));
-		}
-	);
+    RED.httpNode.get("/freeboard_api/datasourceupdate",
+    function (req,res){
+        var ret={};
+        for (var i in nodes){
+            ret[nodes[i].id]=nodes[i].lastValue;
+        }
+        es.end(JSON.stringify(ret));
+    });
 ```
-- The above handler code is periodically invoked (polled) from the Freeboard dasboard; see [datasource.jsheader](../datasource.jsheader), which contains the following embedded JS script that polls for nodered-freeboard updates.
+
+- This handler code is periodically invoked (polled) from [Freeboard dashboard](../node_modules/freeboard/index.html); see also [datasource.jsheader](../datasource.jsheader), which contains the following embedded JS script that polls for datasource updates.
 
 ```html
 <script type="text/javascript">
@@ -140,52 +179,54 @@ This script implements the required Node.js/Node-RED function for constructing n
     ux.freeboard.poll(); // start polling for datasource updates
 </script>
 ```
-- The client-side ``poll()`` function, as defined in the above code snippet, is added to the 
-  ``ux.freeboard`` object which manages all configured nodered-freeboard datasources of a particular Freeboard dashboard instance.
-- The ``ux.freeboard`` object and associated functions are defined in [datasource.jsheader](../datasource.jsheader), which is injected into the Freeboard dashboard instance, when a new datasource is added. This is explained in more detail
-further down in this document.  
 
-### REST-API handler ``/freeboard_api/datasources``
+- The client-side `poll()` function, as defined in the above code snippet, is added to the
+  `ux.freeboard` object which manages all configured NodeRED/Freeboard datasources of a particular Freeboard dashboard instance
+- The `ux.freeboard` object and associated functions are defined in [datasource.jsheader](../datasource.jsheader), which is injected into the Freeboard dashboard instance, when a new datasource is added. This is explained in more detail further down in this document.  
 
-- The server-side REST handler for ``/freeboard_api/datasources`` requests is found in ``freeboard.js`` and is as follows.
+### REST-API handler `/freeboard_api/datasources`
+
+- Implemented in `freeboard.js`
+- Handles `/freeboard_api/datasources` requests from Freeboard dashboard clients
+
 ```js
     RED.httpNode.get("/freeboard_api/datasources",
         function (req,res){
             // Write common definitions from 'datasource.jsheader' files 
             // These defintions were loaded into dslib variable; see freeboard.js for details.
             res.write(dslib); 
-            // For each nodered-freeboard node defined by active Node-RED flows, generate the
+            // For each nodered-freeboard node defined by active NodeRED flows, generate the
             // corresponding datasource descriptor to be send to the requesting Freeboard 
-            // dashboard client. The Freeboard datasource descriptors are generated using
+            // dashboard. The Freeboard datasource descriptors are generated using
             // the Mustache template 'datasource.template' which is part of the 
             // nodered-freeboad package.  
             for (var i in nodes){
                 res.write(mustache.render(dstemplate,{name:nodes[i].name,display_name:nodes[i].name,description:'',id:nodes[i].id}));
             }
             res.end();
-        }
-    );
+        });
 ```
-- The above handler is invoked from [freeboard/index.html](../node_modules/freeboard/index.html) as part of the page initialization script. Hence, the definitions of available nodered-freeboard datasources are dynamically injected into the calling Freeboard dashboard instance when the dashboard is loaded or refreshed (using CTRL+F5 in Chrome browser). 
 
-### REST-API handler ``/freeboard_api/dashboard``
+- This handler is invoked from [Freeboard dashboard](../node_modules/freeboard/index.html) as part of the page initialization script. Hence, the definitions of available NodeRED/Freeboard datasources are dynamically injected into the calling Freeboard dashboard instance when the dashboard is loaded or refreshed (using CTRL+F5 in Chrome browser).
 
-- The server-side REST handler for ``/freeboard_api/dashboard`` requests is found in ``freeboard.js`` and is as follows.
+### REST-API handler `/freeboard_api/dashboard`
+
+- Implemented in `freeboard.js`
+- Handles `/freeboard_api/dashboard` requests from Freeboard dashboard clients
 
 ```js
-	RED.httpNode.post("/freeboard_api/dashboard",
-		function (req,res){
+    RED.httpNode.post("/freeboard_api/dashboard",
+        function (req,res){
             // Load the Freeboard dashboard content from file 'freeboard_<dasboard-name>.json'
             // which is located in the Node-RED user directory '~/.node-red'.
-			fs.writeFile(userDir+"freeboard_"+req.body.name+".json", req.body.content, function (err, data) {
-				if (err) throw err;
-				res.end();
-			});
-
-		}
-	);
+            fs.writeFile(userDir+"freeboard_"+req.body.name+".json", req.body.content, function (err, data) {
+                if (err) throw err;
+                res.end();
+            });
+        });
 ```
-- The above handler is invoked from [freeboard/index.html](../node_modules/freeboard/index.html) as part of the dashboard initialization script as follows.
+
+- The above handler is invoked from [Freeboard dashboard](../node_modules/freeboard/index.html) as part of the dashboard initialization script as follows.
 
 ```html
     <script type="text/javascript">
@@ -205,21 +246,19 @@ further down in this document.
                     });
                 }
             });
-	    });
-	</script>
+        });
+    </script>
 ```
-- The above client-side dashboard initialitation code loads the nodered-freeboard ``datasources`` descriptors via the nodered-freeboard REST API, i.e. using the ""/freeboard_api/datasources" REST-API interface. This is done (together with other script loading stuff) at the very beginning of the page loading process, before the DOM-Ready event. 
-- Afterwards, the dashboard initialization code calls ``freeboard.initialize()`` which initializes the Freeboard backend; see [here](https://github.com/Freeboard/freeboard#api) for details.
-- Next, the dashboard initialization code checks to see wheter the page URL contains a trailing ``#<dashboad-name>`` token. If so, then it tries to load the file ``freeboard_<dashboard-name>.json`` from the Node-RED user directory (\~\/.node-red) containing a saved Freeboard dashboard. The dashboard objects are then added to the Freeboard backend by calling ``freeboard.loadDashboard()``; see [here](https://github.com/Freeboard/freeboard#api) for details.
+
+- The above client-side dashboard initialitation code loads the `datasources` descriptors from NodeRED/Freeboard extension via `<nodered>/freeboard_api/datasources` REST service. This is done at the very beginning of the page loading process, before the DOM-Ready event.
+- Afterwards, the dashboard initialization code calls `freeboard.initialize()` which initializes the Freeboard backend; see [here](https://github.com/Freeboard/freeboard#api) for details.
+- Next, the dashboard initialization code checks to see wheter the page URL contains a trailing `#<dashboad-name>` token. If so, it tries to load the file `freeboard_<dashboard-name>.json` from the NodeRED user directory `~/.node-red`. The dashboard objects are then added to the Freeboard backend by calling `freeboard.loadDashboard()`; see [here](https://github.com/Freeboard/freeboard#api) for details.
 
 ## Freeboard ``datasource.template`` and ``datasource.jsheader``
 
-- The nodered-freeboard [datasource.template](../datasource.template) defines a custom Freeboard Datasource plugin for adding and using Node-RED datasources in Freeboard dashboards. 
-- For details about how this works in detail, see [this link](http://freeboard.github.io/freeboard/docs/plugin_example.html), which provides an example for writing a custom Freeboard Datasource plugin.
-- The template is applied within [freeboard.js](../freeboard.js) by the REST-API handler ``/freeboard_api/datasources``, as described in the previous section.
-- The management objects and functions for all loaded nodered-freeboard datasources inside a Freeboard dashboard instance is implemented in [datasource.jsheader](../datasource.jsheader).
-- The script code contained in the ``datasource.jsheader`` file is injected into the calling client code by calling the server-side ``/freeboard_api/datasources`` REST-API.
-- In particular, the datasource polling function is defined in ``datasource.jsheader``, which periodically requests updates from Node-RED by calling the server-side  ``/freeboard_api/datasourceupdate`` REST-API.
-
-
-
+- The nodered-freeboard [datasource.template](../datasource.template) defines a custom Freeboard datasource plugin for adding and using NodeRED datasources in Freeboard dashboards.
+- For details about how this works in detail, see [this link](http://freeboard.github.io/freeboard/docs/plugin_example.html), which provides an example for writing a custom Freeboard datasource plugin.
+- The template is applied within [freeboard.js](../freeboard.js) in the REST-API handler `/freeboard_api/datasources`, as described in the previous section
+- The management objects and functions for all loaded NodeRED/Freeboard datasources inside a Freeboard dashboard are implemented in [datasource.jsheader](../datasource.jsheader)
+- The script code contained in the `datasource.jsheader` file is injected into Freeboard client by calling via REST service `/freeboard_api/datasources`
+- In particular, the datasource polling function is defined in `datasource.jsheader`

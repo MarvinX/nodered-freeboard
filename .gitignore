@@ -2,3 +2,4 @@ node_modules
 docs/_old_media
 docs/_old_nodered-freeboard_setup_and_usage.md
 package-lock.json
+**/.bak/
