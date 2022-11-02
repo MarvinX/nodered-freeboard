@@ -37,4 +37,4 @@ Details about the implementation of nodered-freeboard extension and the interact
 
 This repository includes the Github sources of the self-hosted [Freeboard](https://github.com/Freeboard/freeboard) dashboard from master branch `38789f6` from 7th March 2018.
 
-The included Freeboard [RAG-widget](freeboard-widget-rag-files) is based on master branch `c998136` from 30th June 2015 from https://github.com/leon-van-dongen/freeboard-widget-rag.
+The included Freeboard [RAG-widget](freeboard-widget-rag-files) is based on master branch `c998136` from 30th June 2015 from <https://github.com/leon-van-dongen/freeboard-widget-rag>.
