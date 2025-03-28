@@ -1,36 +1,38 @@
-// var fs = require('fs');
 const path = require('path');
 const fs = require('fs');
 
+let fbPath = path.dirname(require.resolve("freeboard/package.json"))+"/";
 
 var head=
   'head.js("js/freeboard.js","js/freeboard.plugins.min.js", "../freeboard_api/datasources", "plugins/thirdparty/jquery.keyframes.min.js", "plugins/thirdparty/widget.ragIndicator.js",\n'+
   'function(){'+
-  '                  $(function()\n'+
+  '            $(function()\n'+
   '                  { //DOM Ready\n'+
   '                      freeboard.initialize(true);\n'+
   '                      var hash = window.location.hash;\n'+
   '                      if (hash !== null) {\n'+
   '                          $.get("/freeboard_api/dashboard/"+hash.substring(1), function(data) {\n'+
-  '							var datap=JSON.parse(data);\n'+
-  '							if (!datap.empty){\n'+
-  '								freeboard.loadDashboard(datap, function() {\n'+
-  '									freeboard.setEditing(false);\n'+
-  '									});\n'+
-  '								}\n'+
+  '							                var datap=JSON.parse(data);\n'+
+  '							                if (!datap.empty){\n'+
+  '								                freeboard.loadDashboard(datap, function() {\n'+
+  '									                freeboard.setEditing(false);\n'+
+  '									              });\n'+
+  '								              }\n'+
   '	                        });\n'+
   '	                     }\n'+
   '	                 });\n'+
   '	            });\n'+
   '	</script>';
 
-fs.readFile(path.normalize('node_modules/freeboard/index.html'), 'utf8', function (err,data) {
+// fs.readFile(path.normalize('node_modules/freeboard/index.html'), 'utf8', function (err,data) {
+fs.readFile(path.normalize(fbPath+'index.html'), 'utf8', function (err,data) {
   if (err) {
     return console.log(err);
   }
   var result = data.replace(/head.js[\s\S]*?<\/script>/g, head);
-  fs.writeFile(path.normalize('node_modules/freeboard/index.html'), result, 'utf8', function (err) {
-     if (err) return console.log(err);
+  // fs.writeFile(path.normalize('node_modules/freeboard/index.html'), result, 'utf8', function (err) {
+  fs.writeFile(path.normalize(fbPath+'index.html'), result, 'utf8', function (err) {
+    if (err) return console.log(err);
   });
 });
 
@@ -59,20 +61,24 @@ var saveDashboard=
 	'	});\n'+
 	'}\n';
 
-fs.readFile(path.normalize('node_modules/freeboard/js/freeboard.js'), 'utf8', function (err,data) {
+// fs.readFile(path.normalize('node_modules/freeboard/js/freeboard.js'), 'utf8', function (err,data) {
+fs.readFile(path.normalize(fbPath+'js/freeboard.js'), 'utf8', function (err,data) {
   if (err) {
     return console.log(err);
   }
   var result = data.replace(/this\.saveDashboard =[\s\S]*?a\.click[\s\S]*?\}/g, saveDashboard);
-  fs.writeFile(path.normalize('node_modules/freeboard/js/freeboard.js'), result, 'utf8', function (err) {
+  // fs.writeFile(path.normalize('node_modules/freeboard/js/freeboard.js'), result, 'utf8', function (err) {
+  fs.writeFile(path.normalize(fbPath+'js/freeboard.js'), result, 'utf8', function (err) {
      if (err) return console.log(err);
   });
 });
 
 // Copy the plugins across
 fs.createReadStream(path.normalize('freeboard-widget-rag-files/jquery.keyframes.min.js')).pipe(
-  fs.createWriteStream(path.normalize('node_modules/freeboard/plugins/thirdparty/jquery.keyframes.min.js')));
+  // fs.createWriteStream(path.normalize('node_modules/freeboard/plugins/thirdparty/jquery.keyframes.min.js')));
+  fs.createWriteStream(path.normalize(fbPath+'plugins/thirdparty/jquery.keyframes.min.js')));
 
 fs.createReadStream(path.normalize('freeboard-widget-rag-files/widget.ragIndicator.js')).pipe(
-  fs.createWriteStream(path.normalize('node_modules/freeboard/plugins/thirdparty/widget.ragIndicator.js')));
+  // fs.createWriteStream(path.normalize('node_modules/freeboard/plugins/thirdparty/widget.ragIndicator.js')));
+  fs.createWriteStream(path.normalize(fbPath+'plugins/thirdparty/widget.ragIndicator.js')));
   

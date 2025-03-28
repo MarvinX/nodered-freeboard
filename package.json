@@ -3,10 +3,10 @@
   "version": "0.0.7",
   "description": "Freeboard Dashboard Node for Node-RED",
   "dependencies": {
-    "body-parser": "*",
-    "express": "*",
-    "freeboard": "github:Freeboard/freeboard",
-    "mustache": "*"
+    "body-parser": "^1.20.3",
+    "express": "^4.21.1",
+    "mustache": "^4.2.0",
+    "freeboard": "git+https://github.com/Freeboard/freeboard.git#38789f6"
   },
   "repository": {
     "type": "git",

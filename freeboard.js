@@ -28,12 +28,17 @@
 var express=require("express");
 var mustache=require("mustache");
 var fs=require("fs");
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+const path = require("path");
 module.exports = function(RED) {
     "use strict";
 	var userDir="";
+	var flowFileDir="";
 	if (RED.settings.userDir){
 		userDir=RED.settings.userDir+"/";
+	}
+	if (RED.settings.flowFile){
+		flowFileDir=path.dirname(RED.settings.flowFile)+"/";
 	}
 
 	var dstemplate;
@@ -102,14 +107,21 @@ module.exports = function(RED) {
 	);
 	RED.httpNode.get("/freeboard_api/dashboard/:name",
 		function (req,res){
-			fs.readFile(userDir+"freeboard_"+req.params.name+".json", function (err, data) {
+			// Try reading $flowFileDir/freeboard_<req.params.name>.json
+			fs.readFile(flowFileDir+"freeboard_"+req.params.name+".json", function (err, data) {
 				if (err) {
-					res.end(JSON.stringify({empty:true}));
+					// Try reading $userDir/freeboard_<req.params.name>.json
+					fs.readFile(userDir+"freeboard_"+req.params.name+".json", function (err, data) {
+						if (err) {
+							res.end(JSON.stringify({empty:true}));
+						} else {
+							res.end(data.toString());
+						}
+					})
 				} else {
-					res.end(data.toString());
+					res.end(data.toString());	
 				}
 			});
-
 		}
 	);
     RED.nodes.registerType("freeboard",Freeboard);

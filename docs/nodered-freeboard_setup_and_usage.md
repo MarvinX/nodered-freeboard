@@ -2,42 +2,39 @@
 
 ## Overview
 
-This howto describes the steps for setting up [NodeRED](https://nodered.org/) under Win10 and adding the here provided [nodered-freeboard](../README.md) extension for [Freeboard](https://freeboard.io/) based dashboarding.
+This howto describes the steps for setting up [NodeRED](https://nodered.org/) on Win10/Win11 and adding the here provided [nodered-freeboard](../README.md) extension enabling the use of [Freeboard](https://freeboard.io/) dashboards as NodeRED data sinks.
 
-The original extension [node-red-contrib-freeboard](https://flows.nodered.org/node/node-red-contrib-freeboard) extension adds a new type of datasource to [Freeboard](https://freeboard.io/) dashboards which allows to drive Freeboard dashboards using NodeRED flows. See <https://github.com/urbiworx/node-red-contrib-freeboard> for details about how the NodeRED/Freeboard integration is realized.
+The original extension [node-red-contrib-freeboard](https://flows.nodered.org/node/node-red-contrib-freeboard) extension adds a new type of datasource to [Freeboard](https://freeboard.io/) dashboards which allows connecting NodeRED flows to Freeboard dashboards. See <https://github.com/urbiworx/node-red-contrib-freeboard> for details about how the NodeRED/Freeboard integration is realized.
 
-The original extension has a couple of flaws and bugs and had to be slightly patched to work as expected.
+The original extension has a couple of flaws and had to be patched in order to work as expected.
 
 ## Prerequisites
 
-### Install Node.js on Win10
+### Install Node.js an NPM on Win10
 
-- Download the MSI for latest Node.js LTS from <https://nodejs.org/en/>, e.g. LTS 14.17.6
+- Download the MSI for latest Node.js 16.x LTS version from <https://nodejs.org/en/>, e.g. `v16.20.2`
 - Run the MSI and install to `C:\nodejs` (requires Admin rights)
-  - Use the default installation options for Node.js core packages
+- Use the default installation options for Node.js core packages
 - Do not check "Automatically install the neccessary tools ..."
-  - If needed, use the following link to manually setup Python and VS C++ compiler for building Node.js extensions; see also [nodejs/node-gyp/on-windows](https://github.com/nodejs/node-gyp#on-windows)
+- If needed, use the following link to manually setup Python and VS C++ compiler for building Node.js extensions; see also [nodejs/node-gyp/on-windows](https://github.com/nodejs/node-gyp#on-windows)
 - Start the installation. This will install the Node.js core and NPM package manager under `C:\nodejs\` and also adds Node.js core and NPM binaries to the system path
 
-### Install grunt and grunt-cli packages
+### Install grunt-cli as global package
 
 - Open the Node.js console (WinStart \> Search "Node.js Command prompt")
-  - The working directory should be your home dir `~/` (i.e. Windows %HOMEPATH%)
-- On the Node.js command prompt run
-  - `#> npm install -g grunt`
-- This installs [grunt](https://gruntjs.com/) and
-    [grunt-cli](https://gruntjs.com/getting-started) under `%APPDATA%/node_modules`
+- The working directory should be your home dir `~/` (i.e. Windows %HOMEPATH%)
+- On the Node.js command prompt run: `#> npm install -g grunt-cli`
+- This adds [grunt-cli](https://gruntjs.com/) and pkg-deps to `%APPDATA%/npm/node_modules`
 
-### Install NodeRED
+### Install node-red as global package
 
 - Open the Node.js console (WinStart \> Search "Node.js Command prompt")
-  - The working directory should be your home dir `~/` (i.e. Windows %HOMEPATH%)
-- On the Node.js command prompt run
-  - `#> npm install -g --unsafe-perm node-red`
-  - This installs NodeRED under `%APPDATA%/node_modules` and adds NodeRED to the user path
-- On the Node.js command prompt run
-  - `#> node-red`
-  - On first run, the `~/.node-red` folder will be created, where user-specific NodeRED settings and extensions will be maintained
+- On the Node.js command prompt run: `#> npm install -g --unsafe-perm node-red`
+- This adds `node-red` and pkg-deps to `%APPDATA%/npm/node_modules`
+- Furthermore `node-red.cmd` launcher script is added to user's $Path variable
+- After installation has finished, run: `#> node-red` in Node.js console
+- On first run, the `~/.node-red` folder (`userDir`) and will be created along
+  with default `settings.js` and default `config.*.json`; see [user-guide](https://nodered.org/docs/user-guide/) for details
   
   ![node-red-console](.media/1d63e0e7825d5b22458b2fdb27e2b4f2.png)
 
@@ -45,40 +42,43 @@ The original extension has a couple of flaws and bugs and had to be slightly pat
 
     ![node-red-browser](.media/dfc3742ba71e275e6f533622545c1d76.png)
 
-- Tip: Add a NodeRED bookmark for <http://localhost:1880/> to your browser
+- Tip: Add a corresponding browser bookmark for <http://localhost:1880/>
 
-## Build and install the nodered-freeboard extension
+### Install nodered-freeboard pkg-deps as global packages
+
+- On the Node.js command prompt run:
+- `npm install -g express mustache bodyparser`
+- `npm install -g git+https://github.com/Freeboard/freeboard#master`
+- This adds `express`,`mustache`,`body-parser`, and `freeboard` packages (plus pkg-deps) to `%APPDATA%/npm/node_modules`
+
+## Prepare nodered-freeboard package
 
 - Close all open NodeRED sessions (close browser and kill console process)
 - Open the Node.js console (WinStart \> Search "Node.js Command prompt")
-  - The working directory should be your home dir `~/` (i.e. Windows %HOMEPATH%)
+- In Node.js console run ...
+- `#> md C:\Temp && cd C:\Temp`
+- `#> git clone https://github.com/MarvinX/nodered-freeboard.git`
+- `#> cd nodered-freeboard`
+- `#> npm install` - links pkg-deps, such as `freeboard` and `express` into  `./node_modules`
+- `#> npm run postinstall` - runs `node ./rewritefiles.js` which applies patches `./node_modules/freeboard/freeboard.js`
+   and copies plugins from `freeboard-widget-rag-files/*.js` to `./node_modules/freeboard/plugins/thirdparty/`
+
+## Install nodered-freeboard package in NodeRED userDir
+
 - In Node.js console run
-  - `#> md C:\Temp`
-  - `#> cd C:\Temp`
-  - `#> git clone https://github.com/MarvinX/nodered-freeboard.git`
-  - `#> cd nodered-freeboard`
-  - `#> npm install`
-    - This fetches nodered-freeboard dependencies, such as `freeboard` and `express` package, and installs these dependencies under `C:\Temp\nodered-freeboard\node_modules`
-  - `#> npm run postinstall`
-    - Runs `../nodered-freeboard/package.json/script/postinstall` which calls ../`nodered-freeboard/rewritefiles.js` which in turn applies some patches to the original
-  `../nodered-freeboard/node_modules/freeboard/freeboard.js` module
-    - This also copies `../nodered-freeboard/freeboard-widget-rag-files/` to `nodered-freeboard/node_modules/freeboard/plugins/thirdparty/`
-  - `#> cd ~/.node-red`
-  - `#> npm install C:\Temp\nodered-freeboard`
-    - This adds the locally built nodered-freeboard package to `~/.node-red/node_modules/node-red-contrib-freeboard` and updates `~/.node-red/package.json` accordingly
-- After installing the locally built nodered-freeboard package to `~/.node-red/node_modules/node-red-contrib-freeboard`, the build folder `C:\Temp\nodered-freeboard\` can be deleted
+- `#> cd ~/.node-red`
+- `#> npm install C:\Temp\nodered-freeboard`, which adds nodered-freeboard package to `~/.node-red/node_modules/` and updates `~/.node-red/package.json`
+- Afterward, the folder `C:\Temp\nodered-freeboard\` can be deleted
 
 ## Perform a smoketest
 
-- Restart NodeRED
-  - Close all open NodeRED sessions (close browser and kill console process)
-  - Open the Node.js console (WinStart \> Search "Node.js Command prompt")
-  - The working directory should be your home dir `~/` (i.e. Windows %HOMEPATH%)
-  - In Node.js console run
-    - `#> cd ~/.node-red`
-    - `#> node-red`
-- Open a browser (Chrome is prefered) and type <http://localhost:1880/> which opens the NodeRED flow editor
-- There should be an additional Freeboard node in NodeRED/advanced section
+- Close all open NodeRED sessions (close browser and kill console process)
+- Open a new Node.js console (WinStart \> Search "Node.js Command prompt")
+- In Node.js console run
+- `#> cd ~/.node-red`
+- `#> node-red`
+- Open a browser and type <http://localhost:1880/> which opens the NodeRED flow editor
+- There should be an additional `Freeboard` node in NodeRED/advanced section
 
     ![freeboard-node](.media/dd54d664a1565f7ea50c82af2b04949a.png)
 
@@ -86,11 +86,9 @@ The original extension has a couple of flaws and bugs and had to be slightly pat
 
 - In case you dont't need the nodered-freeboard extension anymore ...
 - Close all open NodeRED sessions (close browser and kill console process)
-- Open the Node.js console (WinStart \> Search "Node.js Command prompt")
-  - The working directory should be your home dir `~/` (i.e. Windows %HOMEPATH%)
 - In Node.js console run
-  - `#> cd ~/.node-red`
-  - `#> npm uninstall node-red-contrib-freeboard`
+- `#> cd ~/.node-red`
+- `#> npm uninstall node-red-contrib-freeboard`
 
 ## Creating a new NodeRED/Freeboard dashboard
 
