@@ -13,7 +13,8 @@ bugs requiring improvements and fixes in order to work as expected.
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT)
+Apache Version 2.0, see [LICENSE](./LICENSE) file.
+The included Freeboard [RAG-widget](freeboard-widget-rag-files) is under [MIT](https://opensource.org/licenses/MIT) license.
 
 ## Credits
 
