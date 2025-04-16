@@ -12,17 +12,18 @@ var head=
   '                      var hash = window.location.hash;\n'+
   '                      if (hash !== null) {\n'+
   '                          $.get("/freeboard_api/dashboard/"+hash.substring(1), function(data) {\n'+
-  '							                var datap=JSON.parse(data);\n'+
-  '							                if (!datap.empty){\n'+
-  '								                freeboard.loadDashboard(datap, function() {\n'+
-  '									                freeboard.setEditing(false);\n'+
-  '									              });\n'+
-  '								              }\n'+
-  '	                        });\n'+
-  '	                     }\n'+
-  '	                 });\n'+
-  '	            });\n'+
-  '	</script>';
+  '                             var datap=JSON.parse(data);\n'+
+  '                             if (!datap.empty){\n'+
+  '                                 freeboard.loadDashboard(datap, function() {\n'+
+  '                                     freeboard.setEditing(false);\n'+
+  '                                 });\n'+
+  '                             }\n'+
+  '                          });\n'+
+  '                          document.title="freeboard/"+hash.substring(1);\n'
+  '                      }\n'+
+  '                  });\n'+
+  '         });\n'+
+  '</script>';
 
 // fs.readFile(path.normalize('node_modules/freeboard/index.html'), 'utf8', function (err,data) {
 fs.readFile(path.normalize(fbPath+'index.html'), 'utf8', function (err,data) {
