@@ -6,8 +6,8 @@ freeboard.loadDatasourcePlugin({
     "display_name": "{{display_name}}",
     "description": "{{description}}",
     "settings": [
-	],
-	
+    ],
+    
     newInstance: function(settings, newInstanceCallback, updateCallback) {
         newInstanceCallback(new myDatasourcePlugin(settings, updateCallback));
     }
@@ -15,25 +15,25 @@ freeboard.loadDatasourcePlugin({
 var myDatasourcePlugin = function(settings, updateCallback) {
     var self = this;
     var currentSettings = settings;
-	self.id=dsid;
-	
-	ux.freeboard.addDatasource(self);
-	self.update = function(data){
-		updateCallback(data);
-	}
+    self.id=dsid;
+    
+    ux.freeboard.addDatasource(self);
+    self.update = function(data){
+        updateCallback(data);
+    }
     self.onSettingsChanged = function(newSettings) {
         currentSettings = newSettings;
     }
     self.updateNow = function() {
-		$.ajax({
-			url: "/freeboard_api/datasourceupdate",
+        $.ajax({
+            url: "/freeboard_api/datasourceupdate",
             type: "GET"
-		}).done(function(data) {
-			var pdata=JSON.parse(data);
-			if (typeof(pdata[dsid])!=="undefined"){
-				updateCallback(pdata[dsid]);
-			}
-		});
+        }).done(function(data) {
+            var pdata=JSON.parse(data);
+            if (typeof(pdata[dsid])!=="undefined"){
+                updateCallback(pdata[dsid]);
+            }
+        });
     }
     self.onDispose = function() {
         ux.freeboard.removeDatasource(self);

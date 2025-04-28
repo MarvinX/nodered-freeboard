@@ -1,29 +1,29 @@
 var ux={freeboard:{}};
 ux.freeboard.datasources={};
 ux.freeboard.addDatasource=function(datasource){
-	ux.freeboard.datasources[datasource.id]=datasource;
+    ux.freeboard.datasources[datasource.id]=datasource;
 }
 ux.freeboard.removeDatasource=function(datasource){
-	delete(ux.freeboard.datasources[datasource.id]);
+    delete(ux.freeboard.datasources[datasource.id]);
 }
 ux.freeboard.poll=function(){
-	setTimeout(function(){
-		$.ajax({
-			url: "../freeboard_api/datasourceupdate",
-			type: "GET"
-		}).done(function(data) {
-			var pdata=JSON.parse(data);
-			for(var name in pdata)
-			{
-				if (pdata.hasOwnProperty(name))
-				{
-					if (typeof(ux.freeboard.datasources[name])!=="undefined"){
-						ux.freeboard.datasources[name].update(pdata[name]);
-					}
-				}
-			}
-			ux.freeboard.poll();
-		});
-	}, 500);
+    setTimeout(function(){
+        $.ajax({
+            url: "../freeboard_api/datasourceupdate",
+            type: "GET"
+        }).done(function(data) {
+            var pdata=JSON.parse(data);
+            for(var name in pdata)
+            {
+                if (pdata.hasOwnProperty(name))
+                {
+                    if (typeof(ux.freeboard.datasources[name])!=="undefined"){
+                        ux.freeboard.datasources[name].update(pdata[name]);
+                    }
+                }
+            }
+            ux.freeboard.poll();
+        });
+    }, 500);
 }
 ux.freeboard.poll();
