@@ -1,0 +1,25 @@
+# Set common handling of line endings foro textfiles  
+# See also: https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings
+
+# Disable automatic EOL conversion
+* -text
+
+# Explicitly declare text files you want to always be normalized 
+# and converted to UNIX LF-line endings on commit and checkout
+**/*.bat            text    eol=crlf
+**/*.cmd            text    eol=crlf
+**/*.ps1            text    eol=crlf
+**/*.yaml           text    eol=lf
+**/*.json           text    eol=lf
+**/*.js             text    eol=lf
+**/*.html           text    eol=lf
+**/*.css            text    eol=lf
+**/*.md             text    eol=lf
+**/.vscode/*        text    eol=lf
+**/.gitattributes   text    eol=lf
+**/.gitignore       text    eol=lf
+**/.gitconfig       text    eol=lf
+**/.npmignore       text    eol=lf
+LICENSE             text    eol=lf
+datasource.jsheader text    eol=lf
+datasource.template text    eol=lf
